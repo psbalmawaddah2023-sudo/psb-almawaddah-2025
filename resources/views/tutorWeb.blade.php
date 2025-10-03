@@ -46,7 +46,7 @@
 
         <h2>Video Panduan</h2>
         <div class="video-container">
-            <iframe src="{{ $pengaturan['video_tutorial'] ?? 'https://www.youtube.com/embed/ZgsPp30-pek' }}"
+            <iframe src="{{ $pengaturan['video_tutorial'] ?? 'https://www.youtube.com/embed/NW5QPPdaFno' }}"
                 allowfullscreen></iframe>
         </div>
 
