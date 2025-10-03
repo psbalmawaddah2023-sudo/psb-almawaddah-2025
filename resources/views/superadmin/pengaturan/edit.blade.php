@@ -17,9 +17,9 @@
                 @if($pengaturan->value)
                     <div class="mt-2">
                         @if(Str::endsWith($pengaturan->value, ['.jpg','.jpeg','.png']))
-                            <img src="{{ asset('storage/'.$pengaturan->value) }}" alt="Logo" width="150">
+                            <img src="{{ asset('storage/app/public'.$pengaturan->value) }}" alt="Logo" width="150">
                         @elseif(Str::endsWith($pengaturan->value, '.pdf'))
-                            <a href="{{ asset('storage/'.$pengaturan->value) }}" target="_blank">Lihat Brosur (PDF)</a>
+                            <a href="{{ asset('storage/app/public'.$pengaturan->value) }}" target="_blank">Lihat Brosur (PDF)</a>
                         @endif
                     </div>
                 @endif
