@@ -54,7 +54,7 @@
             {{ $admin->role_id == 1 ? 'disabled' : '' }}>
         <option value="">Pilih Role</option>
         <option value="2" {{ $admin->role_id == 2 ? 'selected' : '' }}>Admin</option>
-        <option value="3" {{ $admin->role_id == 3 ? 'selected' : '' }}>Superadmin</option>
+        {{-- <option value="3" {{ $admin->role_id == 3 ? 'selected' : '' }}>Superadmin</option> --}}
     </select>
 
     {{-- Hidden input untuk Capel supaya tetap terkirim --}}
