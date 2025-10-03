@@ -11,7 +11,9 @@ class PengaturanController extends Controller
 {
     public function index()
     {
-        $pengaturans = Pengaturan::all();
+        // bikin array: key => value
+        $pengaturans = Pengaturan::pluck('value', 'key')->toArray();
+
         return view('superadmin.pengaturan.index', compact('pengaturans'));
     }
 
@@ -50,8 +52,7 @@ class PengaturanController extends Controller
         $pengaturan->save();
 
         return redirect()
-    ->route('pengaturan.index') // sebelumnya superadmin.pengaturan.index
-    ->with('success', 'Pengaturan berhasil diperbarui');
-
+            ->route('pengaturan.index') // sebelumnya superadmin.pengaturan.index
+            ->with('success', 'Pengaturan berhasil diperbarui');
     }
 }
