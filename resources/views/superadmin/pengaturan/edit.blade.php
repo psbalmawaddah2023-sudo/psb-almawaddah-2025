@@ -7,20 +7,18 @@
         <form action="{{ route('pengaturan.update', $pengaturan->key) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
-
             <div class="mb-3">
                 <label for="value" class="form-label">Value</label>
-
                 @if (in_array($pengaturan->key, ['site_logo', 'brosur_file']))
                     <input type="file" name="value" id="value" class="form-control">
-
                     @if ($pengaturan->value)
                         <div class="mt-2">
                             @if (Str::endsWith($pengaturan->value, ['.jpg', '.jpeg', '.png']))
                                 <img src="{{ asset('storage/app/public' . $pengaturan->value) }}" alt="Logo"
                                     width="150">
                             @elseif(Str::endsWith($pengaturan->value, '.pdf'))
-                                <a href="{{ asset('storage/app/public' . $pengaturan->value) }}" target="_blank">Lihat Brosur
+                                <a href="{{ asset('storage/app/public' . $pengaturan->value) }}" target="_blank">Lihat
+                                    Brosur
                                     (PDF)</a>
                             @endif
                         </div>
