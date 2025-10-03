@@ -57,8 +57,8 @@
             <li>
                 Jika ada kendala, hubungi admin melalui tombol
                 <a href="https://wa.me/6282312565949" style="font-weight: bold; text-decoration: none;" target="_blank">
-                    Bantuan
-                </a>.
+                    Bantuan.
+                </a>
             </li>
         </ul>
     </section>
