@@ -65,7 +65,7 @@
             <h4>{{ $pengaturan['card_help_title'] ?? 'Bantuan' }}</h4>
             <p>{{ $pengaturan['card_help_text'] ?? 'Butuh bantuan? hubungi kami di sini.' }}</p>
             <br>
-            <a href="{{ $pengaturan['whatsapp_link'] ?? 'https://wa.me/6285236627563' }}" class="btn btn-primary"
+            <a href="{{ $pengaturan['whatsapp_link'] ?? 'https://wa.me/6282312565949' }}" class="btn btn-primary"
                 target="_blank" rel="noopener noreferrer">Bantuan</a>
         </div>
     </section>
@@ -73,7 +73,7 @@
     <!-- VIDEO -->
     <section class="video-section" id="video-section">
         <h3>{{ $pengaturan['video_heading'] ?? 'Video' }}</h3>
-        <h2>{{ $pengaturan['video_title'] ?? 'Video Alur Pendaftaran Program Persiapan Calon Pelajar' }}</h2>
+        <h2>{{ $pengaturan['video_title'] ?? 'Video Profil Pesantren Putri Al Mawaddah' }}</h2>
         <p>{{ $pengaturan['video_subtitle'] ?? 'Pesantren Putri Al Mawaddah' }}</p>
         <div class="video-container">
             <iframe src="{{ $pengaturan['video_url'] ?? 'https://www.youtube.com/embed/NW5QPPdaFno' }}"
