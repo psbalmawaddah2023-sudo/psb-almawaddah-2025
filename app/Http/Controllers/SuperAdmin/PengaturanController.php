@@ -11,20 +11,24 @@ class PengaturanController extends Controller
 {
     public function index()
     {
-        $pengaturans = Pengaturan::pluck('value', 'key')->toArray();
+        // Ambil semua pengaturan, keyBy id
+        $pengaturans = Pengaturan::all()->keyBy('id')->toArray();
         return view('superadmin.pengaturan.index', compact('pengaturans'));
     }
 
-    public function edit($key)
+    public function edit($id)
     {
-        $pengaturan = Pengaturan::where('key', $key)->firstOrFail();
+        // Cari berdasarkan id, bukan key
+        $pengaturan = Pengaturan::findOrFail($id);
         return view('superadmin.pengaturan.edit', compact('pengaturan'));
     }
 
-    public function update(Request $request, $key)
+    public function update(Request $request, $id)
     {
-        $pengaturan = Pengaturan::where('key', $key)->firstOrFail();
+        // Cari berdasarkan id
+        $pengaturan = Pengaturan::findOrFail($id);
 
+        // Validasi sesuai jenis pengaturan
         $rules = [];
         if (in_array($pengaturan->key, ['site_logo', 'brosur_file'])) {
             $rules['value'] = 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048';
@@ -33,6 +37,7 @@ class PengaturanController extends Controller
         }
         $request->validate($rules);
 
+        // Proses file upload jika ada
         if ($request->hasFile('value')) {
             if ($pengaturan->value && Storage::disk('public')->exists($pengaturan->value)) {
                 Storage::disk('public')->delete($pengaturan->value);

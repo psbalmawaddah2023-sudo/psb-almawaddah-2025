@@ -70,11 +70,12 @@ Route::middleware(['auth', 'role:superadmin'])
             Route::get('/export/pdf', [LaporanController::class, 'exportPDF'])->name('laporan.capel.pdf');
         });
 
-        //Pengaturan 
+        // Pengaturan
         Route::get('pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
-        Route::get('pengaturan/{key}/edit', [PengaturanController::class, 'edit'])->name('pengaturan.edit');
-        Route::put('pengaturan/{key}', [PengaturanController::class, 'update'])->name('pengaturan.update');
 
+        // Edit dan update pakai {id} sebagai parameter
+        Route::get('pengaturan/{id}/edit', [PengaturanController::class, 'edit'])->name('pengaturan.edit');
+        Route::put('pengaturan/{id}', [PengaturanController::class, 'update'])->name('pengaturan.update');
         // Dokumen
         Route::post('pendaftaran/{pendaftaran}/dokumen', [DokumenController::class, 'store'])
             ->name('dokumen.store');

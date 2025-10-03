@@ -22,19 +22,23 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($pengaturans as $key => $value)
+                @forelse($pengaturans as $id => $pengaturan)
                     <tr>
                         <td>{{ $loop->iteration }}</td>
-                        <td>{{ ucwords(str_replace('_', ' ', $key)) }}</td>
+                        <td>{{ ucwords(str_replace('_', ' ', $pengaturan['key'])) }}</td>
                         <td>
-                            @if (strlen($value) > 50)
-                                {{ Str::limit($value, 50) }}
+                            @php
+                                $value = $pengaturan['value'];
+                            @endphp
+
+                            @if (is_string($value) && strlen($value) > 50)
+                                {{ \Illuminate\Support\Str::limit($value, 50) }}
                             @else
                                 {{ $value ?? '-' }}
                             @endif
                         </td>
                         <td class="text-center">
-                            <a href="{{ route('pengaturan.edit', $key) }}" class="btn btn-warning btn-sm">
+                            <a href="{{ route('pengaturan.edit', $id) }}" class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>
                         </td>
@@ -44,6 +48,7 @@
                         <td colspan="4">Tidak ada data</td>
                     </tr>
                 @endforelse
+
 
             </tbody>
         </table>
