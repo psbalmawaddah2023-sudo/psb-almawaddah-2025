@@ -62,7 +62,7 @@
             <li>Pastikan koneksi internet stabil.</li>
             <li>
                 Jika ada kendala, hubungi admin melalui tombol
-                <a href="https://wa.me/6282312565949" target="_blank" class="btn btn-primary">
+                <a href="https://wa.me/6282312565949">
                     Bantuan
                 </a>.
             </li>
