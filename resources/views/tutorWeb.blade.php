@@ -54,7 +54,12 @@
         <ul>
             <li>Gunakan browser terbaru (Chrome, Edge, atau Firefox).</li>
             <li>Pastikan koneksi internet stabil.</li>
-            <li>Jika ada kendala, hubungi admin melalui tombol <b>Bantuan</b>.</li>
+            <li>
+                Jika ada kendala, hubungi admin melalui tombol <b>Bantuan</b>.
+            </li>
+            <a href="https://wa.me/6282312565949" target="_blank" class="btn btn-primary">
+                Bantuan
+            </a>
         </ul>
     </section>
 
