@@ -89,11 +89,11 @@
                             value="{{ old('no_kk', $pendaftaran->no_kk ?? '') }}">
                     </div>
 
-                    <div class="mb-3">
+                    {{-- <div class="mb-3">
                         <label for="kip" class="form-label">No KIP</label>
                         <input type="text" name="kip" class="form-control" 
                             value="{{ old('kip', $pendaftaran->kip ?? '') }}">
-                    </div>
+                    </div> --}}
 
                     <div class="d-flex justify-content-between">
                         <a href="{{ route('capel.pendaftaran.step1') }}" class="btn btn-secondary px-4">Kembali</a>
