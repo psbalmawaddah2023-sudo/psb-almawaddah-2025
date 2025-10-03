@@ -70,8 +70,10 @@ Route::middleware(['auth', 'role:superadmin'])
             Route::get('/export/pdf', [LaporanController::class, 'exportPDF'])->name('laporan.capel.pdf');
         });
 
-        // Pengaturan 
-        Route::resource('pengaturan', PengaturanController::class)->only(['index', 'edit', 'update']);
+        //Pengaturan 
+        Route::get('pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::get('pengaturan/{key}/edit', [PengaturanController::class, 'edit'])->name('pengaturan.edit');
+        Route::put('pengaturan/{key}', [PengaturanController::class, 'update'])->name('pengaturan.update');
 
         // Dokumen
         Route::post('pendaftaran/{pendaftaran}/dokumen', [DokumenController::class, 'store'])

@@ -11,23 +11,20 @@ class PengaturanController extends Controller
 {
     public function index()
     {
-        // bikin array: key => value
         $pengaturans = Pengaturan::pluck('value', 'key')->toArray();
-
         return view('superadmin.pengaturan.index', compact('pengaturans'));
     }
 
-    public function edit($id)
+    public function edit($key)
     {
-        $pengaturan = Pengaturan::findOrFail($id);
+        $pengaturan = Pengaturan::where('key', $key)->firstOrFail();
         return view('superadmin.pengaturan.edit', compact('pengaturan'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $key)
     {
-        $pengaturan = Pengaturan::findOrFail($id);
+        $pengaturan = Pengaturan::where('key', $key)->firstOrFail();
 
-        // Validasi fleksibel (boleh file atau teks)
         $rules = [];
         if (in_array($pengaturan->key, ['site_logo', 'brosur_file'])) {
             $rules['value'] = 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048';
@@ -37,12 +34,9 @@ class PengaturanController extends Controller
         $request->validate($rules);
 
         if ($request->hasFile('value')) {
-            // hapus file lama kalau ada
             if ($pengaturan->value && Storage::disk('public')->exists($pengaturan->value)) {
                 Storage::disk('public')->delete($pengaturan->value);
             }
-
-            // simpan file baru
             $path = $request->file('value')->store('uploads', 'public');
             $pengaturan->value = $path;
         } else {
@@ -51,8 +45,6 @@ class PengaturanController extends Controller
 
         $pengaturan->save();
 
-        return redirect()
-            ->route('pengaturan.index') // sebelumnya superadmin.pengaturan.index
-            ->with('success', 'Pengaturan berhasil diperbarui');
+        return redirect()->route('pengaturan.index')->with('success', 'Pengaturan berhasil diperbarui');
     }
 }
