@@ -8,9 +8,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Dokumen;
 use Barryvdh\DomPDF\Facade\Pdf;
-
-
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage; // Digunakan untuk menghapus file lama
 
 class PendaftaranController extends Controller
 {
@@ -18,21 +17,72 @@ class PendaftaranController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        $pendaftaran = Pendaftaran::where('user_id', $user->id)->first();
+        // Ambil pendaftaran terakhir (jika ada) untuk ditampilkan di dashboard
+        $pendaftaran = Pendaftaran::where('user_id', $user->id)->latest()->first();
 
         $pengaturan = [
             'site_title' => 'Dashboard Calon Pelajar',
         ];
 
-        $total = Pendaftaran::count();
+        // Contoh total data pendaftaran di sistem (mungkin lebih cocok di sisi Admin)
+        $total = Pendaftaran::count(); 
 
         return view('capel.dashboard', compact('user', 'pendaftaran', 'pengaturan', 'total'));
     }
 
+    // ================= INDEX (Ringkasan Pendaftaran) =================
+    // Menampilkan daftar/ringkasan pendaftaran user yang login
+    public function index()
+    {
+        $user = auth()->user();
+        // Ambil pendaftaran terakhir yang dimiliki user
+        $pendaftaran = Pendaftaran::with('dokumens')
+            ->where('user_id', $user->id)
+            ->latest()
+            ->first();
+        
+        // Jika belum ada pendaftaran, inisialisasi kosong
+        if (!$pendaftaran) {
+            return view('capel.index', [
+                'pendaftaran' => null, 
+                'dokumen' => collect(), 
+                'catatanRevisi' => 'Anda belum melakukan pendaftaran.',
+            ]);
+        }
+
+        $dokumen = $pendaftaran->dokumens; // Relasi HasMany, gunakan plural 'dokumens'
+        $catatanRevisi = $pendaftaran->catatan_revisi ?? 'Belum ada catatan dari admin.';
+
+        return view('capel.index', compact('pendaftaran', 'dokumen', 'catatanRevisi'));
+    }
+    
+    public function show(Pendaftaran $pendaftaran)
+    {
+        // Otorisasi: Pastikan pendaftaran milik user yang login
+        if ($pendaftaran->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Ambil dokumen
+        $dokumen = $pendaftaran->dokumens; // Pastikan relasi 'dokumens' (plural)
+        $catatanRevisi = $pendaftaran->catatan_revisi ?? 'Catatan dari admin akan muncul di sini jika ada yang perlu diubah.';
+
+        $pengaturan = [
+            'site_title' => 'Detail Pendaftaran'
+        ];
+
+        return view('capel.pendaftaran.index', compact('pendaftaran', 'dokumen', 'catatanRevisi', 'pengaturan'));
+    }
+
+    // ----------------------------------------------------
+    // ========== Proses Pendaftaran Multi-Step ===========
+    // ----------------------------------------------------
+
     // ================= STEP 1: Data Awal =================
     public function step1()
     {
-        $tahunBulan = Carbon::now()->format('Ym'); // contoh: 202509
+        // Logika pembuatan No Pendaftaran
+        $tahunBulan = Carbon::now()->format('Ym'); 
 
         $last = Pendaftaran::where('no_pendaftaran', 'like', 'REG-' . $tahunBulan . '-%')
             ->orderBy('no_pendaftaran', 'desc')
@@ -54,50 +104,56 @@ class PendaftaranController extends Controller
     public function storeStep1(Request $request)
     {
         $data = $request->validate([
-            'no_pendaftaran'      => 'required|unique:pendaftarans,no_pendaftaran',
-            'tanggal_daftar'      => 'required|date',
-            'kelas_diinginkan'    => 'required',
-            'nama_lengkap'        => 'required',
-            'tempat_lahir'        => 'required',
-            'tanggal_lahir'       => 'required|date',
-            'alamat_lengkap'      => 'required',
-            'sekolah_asal'        => 'required',
-            'alamat_sekolah_asal' => 'required',
+            'no_pendaftaran'        => 'required|unique:pendaftarans,no_pendaftaran',
+            'tanggal_daftar'        => 'required|date',
+            'kelas_diinginkan'      => 'required|string',
+            'nama_lengkap'          => 'required|string|max:255',
+            'tempat_lahir'          => 'required|string|max:100',
+            'tanggal_lahir'         => 'required|date',
+            'alamat_lengkap'        => 'required|string',
+            'sekolah_asal'          => 'required|string|max:255',
+            'alamat_sekolah_asal'   => 'required|string',
         ]);
 
         $data['user_id'] = Auth::id();
+        $data['status_pendaftaran'] = 'draft'; // Tambahkan status draft
 
         $pendaftaran = Pendaftaran::create($data);
 
-        return redirect()->route('capel.pendaftaran.createStep2');
+        // Redirect ke Step 2 dengan membawa ID Pendaftaran
+        return redirect()->route('capel.pendaftaran.createStep2', $pendaftaran->id);
     }
 
-    // ================= STEP 2: Data Kontak =================
-    public function createStep2()
+    // ================= STEP 2: Data Kontak & Identitas =================
+    // Menggunakan Route Model Binding untuk Pendaftaran $pendaftaran
+    public function createStep2(Pendaftaran $pendaftaran)
     {
-        $user = Auth::user();
-        $pendaftaran = Pendaftaran::where('user_id', $user->id)->latest()->first();
+        // Otorisasi: Pastikan pendaftaran milik user yang login
+        if ($pendaftaran->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
 
         return view('capel.pendaftaran.step2', compact('pendaftaran'));
     }
 
-    public function storeStep2(Request $request)
+    public function storeStep2(Request $request, Pendaftaran $pendaftaran)
     {
+        // Otorisasi
+        if ($pendaftaran->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+        
+        // Aturan validasi yang sudah di-set nullable
         $data = $request->validate([
             'nomor_telepon'   => 'nullable|string|max:20',
             'nomor_whatsapp'  => 'nullable|string|max:20',
-            'nisn'            => 'nullable|string|max:20',
+            'nisn'            => 'nullable|string|max:20', // Perlu pastikan NISN di DB NULLABLE
             'nik'             => 'nullable|string|max:20',
             'no_kk'           => 'nullable|string|max:20',
             'kip'             => 'nullable|string|max:20',
         ]);
 
-        $user = Auth::user();
-        $pendaftaran = Pendaftaran::where('user_id', $user->id)->latest()->first();
-
-        if ($pendaftaran) {
-            $pendaftaran->update($data);
-        }
+        $pendaftaran->update($data);
 
         return redirect()->route('capel.pendaftaran.step3', $pendaftaran->id)
             ->with('success', 'Data Kontak & Identitas berhasil disimpan.');
@@ -106,20 +162,28 @@ class PendaftaranController extends Controller
     // ================= STEP 3: Data Orang Tua =================
     public function step3(Pendaftaran $pendaftaran)
     {
+        if ($pendaftaran->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
         return view('capel.pendaftaran.step3', compact('pendaftaran'));
     }
 
     public function storeStep3(Request $request, Pendaftaran $pendaftaran)
     {
+        if ($pendaftaran->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
         $data = $request->validate([
-            'email_ortu'       => 'required|email',
-            'nama_ayah'        => 'nullable|string',
-            'nik_ayah'         => 'nullable|string',
-            'pekerjaan_ayah'   => 'nullable|string',
-            'nama_ibu'         => 'nullable|string',
-            'nik_ibu'          => 'nullable|string',
-            'pekerjaan_ibu'    => 'nullable|string',
-            'penghasilan_ortu' => 'nullable|string',
+            'email_ortu'       => 'required|email|max:255',
+            'nama_ayah'        => 'nullable|string|max:255',
+            'nik_ayah'         => 'nullable|string|max:20',
+            'pekerjaan_ayah'   => 'nullable|string|max:100',
+            'nama_ibu'         => 'nullable|string|max:255',
+            'nik_ibu'          => 'nullable|string|max:20',
+            'pekerjaan_ibu'    => 'nullable|string|max:100',
+            'penghasilan_ortu' => 'nullable|string|max:100',
         ]);
 
         $pendaftaran->update($data);
@@ -130,30 +194,50 @@ class PendaftaranController extends Controller
     // ================= STEP 4: Upload Dokumen =================
     public function step4(Pendaftaran $pendaftaran)
     {
-        // cek apakah sudah ada dokumen
-        $dokumen = $pendaftaran->dokumen; // otomatis ambil relasi hasOne
+        if ($pendaftaran->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+        
+        // Ambil semua dokumen terkait pendaftaran ini
+        $dokumens = $pendaftaran->dokumens; 
 
-        return view('capel.pendaftaran.step4', compact('pendaftaran', 'dokumen'));
+        return view('capel.pendaftaran.step4', compact('pendaftaran', 'dokumens'));
     }
 
     public function storeStep4(Request $request, Pendaftaran $pendaftaran)
     {
+        if ($pendaftaran->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
         $data = $request->validate([
-            'pas_foto'               => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'kartu_nisn'             => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
-            'akta_kelahiran'         => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
-            'kartu_keluarga'         => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
-            'kartu_indonesia_pintar' => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
-            'bukti_transfer'         => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
+            'pas_foto'                => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'kartu_nisn'              => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
+            'akta_kelahiran'          => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
+            'kartu_keluarga'          => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
+            'kartu_indonesia_pintar'  => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
+            'bukti_transfer'          => 'nullable|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        foreach (['pas_foto', 'kartu_nisn', 'akta_kelahiran', 'kartu_keluarga', 'kartu_indonesia_pintar', 'bukti_transfer'] as $field) {
+        $fields = ['pas_foto', 'kartu_nisn', 'akta_kelahiran', 'kartu_keluarga', 'kartu_indonesia_pintar', 'bukti_transfer'];
+
+        foreach ($fields as $field) {
             if ($request->hasFile($field)) {
                 $file = $request->file($field);
+                
+                // Cek apakah dokumen lama ada dan hapus (Opsional, jika Anda mau replace file lama)
+                $dokumenLama = Dokumen::where('pendaftaran_id', $pendaftaran->id)
+                                    ->where('jenis_dokumen', $field)
+                                    ->first();
+                
+                if ($dokumenLama && Storage::disk('public')->exists($dokumenLama->path_file)) {
+                    Storage::disk('public')->delete($dokumenLama->path_file);
+                }
+
                 $path = $file->store("dokumens/{$pendaftaran->id}", 'public');
 
-                // simpan ke DB
-                \App\Models\Dokumen::updateOrCreate(
+                // Simpan/Update ke DB
+                Dokumen::updateOrCreate(
                     [
                         'pendaftaran_id' => $pendaftaran->id,
                         'jenis_dokumen'  => $field,
@@ -169,42 +253,30 @@ class PendaftaranController extends Controller
         }
 
         return redirect()->route('capel.pendaftaran.step5', $pendaftaran->id)
-            ->with('success', 'Dokumen berhasil diunggah.');
+            ->with('success', 'Dokumen berhasil diunggah/diperbarui.');
     }
 
-    // ================= STEP 5: Konfirmasi =================
+    // ================= STEP 5: Konfirmasi & Selesai =================
     public function step5(Pendaftaran $pendaftaran)
     {
-        $dokumen = $pendaftaran->dokumens ?? collect();
+        if ($pendaftaran->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
 
-        // Ambil catatan revisi jika ada
+        $dokumens = $pendaftaran->dokumens; // Gunakan plural 'dokumens'
         $catatanRevisi = $pendaftaran->catatan_revisi;
 
-        return view('capel.pendaftaran.step5', compact('pendaftaran', 'dokumen', 'catatanRevisi'));
+        return view('capel.pendaftaran.step5', compact('pendaftaran', 'dokumens', 'catatanRevisi'));
     }
 
-    // Export PDF
-    public function exportPdf(Pendaftaran $pendaftaran)
+    public function konfirmasi(Pendaftaran $pendaftaran)
     {
-        $dokumen = $pendaftaran->dokumen ?? collect();
-        $catatanRevisi = $pendaftaran->catatan_revisi;
-
-        // Load view PDF
-        $pdf = PDF::loadView('capel.pendaftaran.step5_pdf', compact('pendaftaran', 'dokumen', 'catatanRevisi'));
-
-        // Download PDF dengan nama file
-        return $pdf->download('pendaftaran_' . $pendaftaran->no_pendaftaran . '.pdf');
-    }
-    public function konfirmasi($id)
-    {
-        $pendaftaran = Pendaftaran::findOrFail($id);
-
-        // pastikan hanya user pemilik yg bisa konfirmasi
+        // Otorisasi menggunakan Route Model Binding
         if ($pendaftaran->user_id !== auth()->id()) {
             abort(403, 'Unauthorized');
         }
 
-        // update status jadi tetap pending (biar admin yg ubah nanti)
+        // Update status menjadi 'pending' untuk diverifikasi admin
         $pendaftaran->update([
             'status_pendaftaran' => 'pending',
         ]);
@@ -213,42 +285,27 @@ class PendaftaranController extends Controller
             ->with('success', 'Data berhasil dikonfirmasi & sudah disubmit. Menunggu verifikasi admin.');
     }
 
-    // ================= INDEX =================
-    // Menampilkan daftar semua pendaftaran user yang login
-    public function index()
+    // ================= Export PDF =================
+    public function exportPdf(Pendaftaran $pendaftaran)
     {
-        $user = auth()->user();
-        $pendaftaran = Pendaftaran::with('dokumens')
-            ->where('user_id', $user->id)
-            ->latest()
-            ->first(); // <== ambil 1 model saja
-        $dokumen = $pendaftaran->dokumens ?? collect(); // <== tambahkan ini
-        $catatanRevisi = $pendaftaran->catatan_revisi ?? 'Belum ada catatan dari admin.';
-
-    return view('capel.index', compact('pendaftaran', 'dokumen', 'catatanRevisi'));
-    }
-
-    public function show(Pendaftaran $pendaftaran)
-    {
-        if ($pendaftaran->user_id !== auth()->id()) {
+        if ($pendaftaran->user_id !== Auth::id()) {
             abort(403, 'Unauthorized');
         }
 
-        // Ambil dokumen
-        $dokumen = $pendaftaran->dokumens ?? collect();
+        $dokumens = $pendaftaran->dokumens; // Gunakan plural 'dokumens'
+        $catatanRevisi = $pendaftaran->catatan_revisi;
 
-        // Ambil catatan revisi
-        $catatanRevisi = $pendaftaran->catatan_revisi ?? 'Catatan dari admin akan muncul di sini jika ada yang perlu diubah.';
+        // Load view PDF
+        $pdf = Pdf::loadView('capel.pendaftaran.step5_pdf', compact('pendaftaran', 'dokumens', 'catatanRevisi'));
 
-        // Pengaturan navbar
-        $pengaturan = [
-            'site_title' => 'Portal Pendaftaran'
-        ];
-
-        return view('capel.pendaftaran.index', compact('pendaftaran', 'dokumen', 'catatanRevisi', 'pengaturan'));
+        // Download PDF dengan nama file
+        return $pdf->download('pendaftaran_' . $pendaftaran->no_pendaftaran . '.pdf');
     }
 
-    // ================= EDIT =================
+    // ----------------------------------------------------
+    // ====================== Edit Data ======================
+    // ----------------------------------------------------
+
     public function edit(Pendaftaran $pendaftaran)
     {
         if ($pendaftaran->user_id !== auth()->id()) {
@@ -261,13 +318,19 @@ class PendaftaranController extends Controller
 
     public function updateDokumen(Request $request, Pendaftaran $pendaftaran, Dokumen $dokumen)
     {
-        if ($pendaftaran->user_id !== auth()->id()) {
+        if ($pendaftaran->user_id !== auth()->id() || $dokumen->pendaftaran_id !== $pendaftaran->id) {
             abort(403, 'Unauthorized');
         }
 
         $request->validate([
-            'file' => 'required|mimes:jpg,jpeg,png,pdf|max:2048', // bisa disesuaikan
+            // Sesuaikan aturan file berdasarkan jenis dokumen (misal, foto hanya boleh image)
+            'file' => 'required|mimes:jpg,jpeg,png,pdf|max:2048', 
         ]);
+
+        // Hapus file lama dari storage
+        if (Storage::disk('public')->exists($dokumen->path_file)) {
+            Storage::disk('public')->delete($dokumen->path_file);
+        }
 
         // Simpan file baru
         $file = $request->file('file');
@@ -280,9 +343,17 @@ class PendaftaranController extends Controller
             'ukuran_file'    => $file->getSize(),
             'mime_type'      => $file->getMimeType()
         ]);
+        
+        // Opsional: Atur status pendaftaran kembali ke draft/revisi jika sebelumnya sudah submitted
+        if ($pendaftaran->status_pendaftaran == 'pending' || $pendaftaran->status_pendaftaran == 'revisi') {
+             $pendaftaran->update(['status_pendaftaran' => 'revisi']);
+        }
+
 
         return back()->with('success', 'Dokumen berhasil diperbarui');
     }
+    
+    // Update data pendaftaran secara inline (AJAX/edit cepat)
     public function update(Request $request, Pendaftaran $pendaftaran)
     {
         if ($pendaftaran->user_id !== auth()->id()) {
@@ -292,18 +363,20 @@ class PendaftaranController extends Controller
         $field = $request->input('field');
         $value = $request->input('value');
 
-        // Validasi field sesuai tipe data
+        // Daftar lengkap aturan validasi
         $rules = [
             'nama_lengkap' => 'required|string|max:255',
             'kelas_diinginkan' => 'required|string|max:100',
             'tempat_lahir' => 'required|string|max:255',
             'tanggal_lahir' => 'required|date',
             'alamat_lengkap' => 'required|string',
-            'email_ortu' => 'required|email',
+            'email_ortu' => 'required|email|max:255',
             'nomor_telepon' => 'nullable|string|max:20',
             'nomor_whatsapp' => 'nullable|string|max:20',
+            'nisn' => 'nullable|string|max:20', // Harus dipastikan NISN NULLABLE di DB
             'nik' => 'nullable|string|max:20',
             'no_kk' => 'nullable|string|max:20',
+            'kip' => 'nullable|string|max:20',
             'nama_ayah' => 'nullable|string|max:255',
             'nik_ayah' => 'nullable|string|max:20',
             'pekerjaan_ayah' => 'nullable|string|max:100',
@@ -316,9 +389,15 @@ class PendaftaranController extends Controller
         if (!array_key_exists($field, $rules)) {
             return back()->with('error', 'Field tidak valid');
         }
-
+        
+        // Jalankan validasi hanya untuk field yang di-update
         $request->validate([
             'value' => $rules[$field]
+        ], [
+             // Custom error message
+             'value.required' => 'Kolom ini wajib diisi.',
+             'value.max' => 'Panjang maksimum adalah :max karakter.',
+             'value.email' => 'Format harus berupa email yang valid.',
         ]);
 
         $pendaftaran->update([$field => $value]);
