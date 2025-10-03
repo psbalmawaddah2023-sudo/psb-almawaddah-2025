@@ -88,7 +88,7 @@
         </p>
         <br>
         <div class="faq-actions">
-            <a href="{{ $pengaturan['brosur_file'] ? asset('storage/' . $pengaturan['brosur_file']) : asset('files/browsur.pdf') }}"
+            <a href="{{ $pengaturan['brosur_file'] ? asset('storage/app/public' . $pengaturan['brosur_file']) : asset('files/browsur.pdf') }}"
                 class="btn btn-primary" target="_blank" rel="noopener noreferrer" style="margin-right: 10px;">
                 Browsur Online
             </a>
