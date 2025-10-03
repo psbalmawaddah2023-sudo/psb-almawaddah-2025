@@ -17,7 +17,7 @@
     <header class="navbar">
         <div class="nav-left">
             <!-- Image Navbar -->
-            <img src="{{ asset('storage/' . ($pengaturan['site_logo'] ?? 'image/logo.png')) }}" alt="Logo">
+            <img src="{{ asset('storage/app/public' . ($pengaturan['site_logo'] ?? 'image/logo.png')) }}" alt="Logo">
             <span class="site-title">{{ $pengaturan['site_title'] ?? 'Pendaftaran Capel' }}</span>
             <button class="nav-toggle" id="navToggle">&#9776;</button> <!-- Hamburger icon -->
         </div>

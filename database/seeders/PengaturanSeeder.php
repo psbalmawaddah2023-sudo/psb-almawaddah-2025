@@ -22,7 +22,6 @@ class PengaturanSeeder extends Seeder
             ['key' => 'info_link', 'value' => 'https://www.pesantrenputrialmawaddah.sch.id/psbonline-almawaddah/'],
             ['key' => 'brosur_file', 'value' => 'files/brosur.pdf'],
             ['key' => 'video_tutorial', 'value' => 'https://www.youtube.com/embed/NW5QPPdaFno'],
-            
         ];
     
 

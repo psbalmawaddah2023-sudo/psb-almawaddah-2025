@@ -46,8 +46,12 @@
 
         <h2>Video Panduan</h2>
         <div class="video-container">
-            <iframe src="{{ $pengaturan['video_tutorial'] ?? 'https://www.youtube.com/embed/NW5QPPdaFno' }}"
-                allowfullscreen></iframe>
+            <iframe width="560" height="315"
+                src="{{ $pengaturans['video_tutorial'] ?? 'https://www.youtube.com/embed/NW5QPPdaFno' }}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
         </div>
 
         <h2>Tips Menggunakan Website</h2>
