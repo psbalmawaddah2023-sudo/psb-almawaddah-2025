@@ -18,10 +18,11 @@ class PengaturanSeeder extends Seeder
             ['key' => 'faq2_question', 'value' => 'Bagaimana Kurikulumnya?'],
             ['key' => 'faq2_answer', 'value' => 'MBI adalah KMI plus negara'],
             ['key' => 'footer_text', 'value' => 'Panitia Ujian Masuk Calon Pelajar Pesantren Putri Al Mawaddah'],
-            ['key' => 'whatsapp_link', 'value' => 'https://wa.me/6285236627563'],
+            ['key' => 'whatsapp_link', 'value' => 'https://wa.me/6282312565949'],
             ['key' => 'info_link', 'value' => 'https://www.pesantrenputrialmawaddah.sch.id/psbonline-almawaddah/'],
             ['key' => 'brosur_file', 'value' => 'files/brosur.pdf'],
-            ['key' => 'video_url', 'value' => 'https://www.youtube.com/embed/NW5QPPdaFno'],
+            ['key' => 'video_tutorial', 'value' => 'https://www.youtube.com/embed/NW5QPPdaFno'],
+            
         ];
     
 
