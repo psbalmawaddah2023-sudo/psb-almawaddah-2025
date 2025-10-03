@@ -168,7 +168,7 @@
         <br>
         <div class="faq-actions">
             <a href="{{ !empty($pengaturan['brosur_file'])
-                ? asset('storage/' . $pengaturan['brosur_file'])
+                ? asset('storage/app/public' . $pengaturan['brosur_file'])
                 : asset('files/browsur.pdf') }}"
                 class="btn btn-primary" target="_blank" rel="noopener noreferrer" style="margin-right: 10px;">
                 Browsur Online
@@ -182,12 +182,14 @@
         <div class="faq-grid">
             <div>
                 <h4>{{ $pengaturan['faq1_question'] ?? 'Apa itu Program Persiapan Calon Pelajar?' }}</h4>
-                <p>{{ $pengaturan['faq1_answer'] ?? 'Program khusus untuk persiapan Ujian Masuk MBI yang diselenggarakan dalam 2 gelombang.' }}
+                <p>{{ $pengaturan['faq1_answer'] ?? 'Program Persiapan Calon Pelajar MBI adalah tahap awal pembinaan bagi santri 
+                putri untuk mengenal dan menyesuaikan diri dengan kehidupan pesantren Al-Mawaddah.' }}
                 </p>
             </div>
             <div>
                 <h4>{{ $pengaturan['faq2_question'] ?? 'Bagaimana Kurikulumnya?' }}</h4>
-                <p>{{ $pengaturan['faq2_answer'] ?? 'Kegiatan belajar mengajar mengikuti kurikulum MBI.' }}</p>
+                <p>{{ $pengaturan['faq2_answer'] ?? 'Kurikulum MBI memadukan pendidikan formal setingkat MTs/MA dengan 
+                pembelajaran kepesantrenan yang menekankan ilmu agama, akhlak, dan pembiasaan hidup islami.' }}</p>
             </div>
         </div>
     </section>
