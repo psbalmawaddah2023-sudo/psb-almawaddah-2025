@@ -66,7 +66,7 @@
                         <input type="file" name="pas_foto" class="form-control" {{ optional($dokumen)->pas_foto ? '' : 'required' }}>
                         @if(optional($dokumen)->pas_foto)
                             <small class="text-success">Sudah diupload:
-                                <a href="{{ asset('storage/'.optional($dokumen)->pas_foto) }}" target="_blank">Lihat</a>
+                                <a href="{{ asset('storage/app/public'.optional($dokumen)->pas_foto) }}" target="_blank">Lihat</a>
                             </small>
                         @endif
                         @error('pas_foto')
