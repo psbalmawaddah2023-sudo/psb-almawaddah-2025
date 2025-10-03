@@ -72,10 +72,9 @@ Route::middleware(['auth', 'role:superadmin'])
 
         // Pengaturan
         Route::get('pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
-
-        // Edit dan update pakai {id} sebagai parameter
         Route::get('pengaturan/{id}/edit', [PengaturanController::class, 'edit'])->name('pengaturan.edit');
         Route::put('pengaturan/{id}', [PengaturanController::class, 'update'])->name('pengaturan.update');
+
         // Dokumen
         Route::post('pendaftaran/{pendaftaran}/dokumen', [DokumenController::class, 'store'])
             ->name('dokumen.store');
